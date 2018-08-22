@@ -49,6 +49,11 @@ parser.add_argument('--manualSeed', type=int, help='manual seed')
 parser.add_argument('--epoch_iter', type=int,default=1000, help='number of epochs on entire dataset')
 parser.add_argument('--location', type = int, default=0, help ='where is the code running')
 parser.add_argument('-f',type=str,default= '', help='dummy input required for jupyter notebook')
+parser.add_argument('--nc', type=int, default=3, help='num channels')
+parser.add_argument('--zdim', type=int, default=128, help='latent variable size')
+parser.add_argument('--edim', type=int, default=64, help='dimensions of expression vec')
+parser.add_argument('--pdim', type=int, default=64, help='dimensions of person vec')
+
 opt = parser.parse_args()
 print(opt)
 
@@ -288,8 +293,8 @@ class AE(nn.Module):
 
 	'''
 
-	encoder = WaspNet.Dense_Encoders_AE_SliceSplit(opt.nc=3, opt.ndf=8, opt.zdim=128, opt.pdim=64, opt.edim=64)
-	decoder = WaspNet.Dense_Decoders_AE(opt.nc=3, opt.ngf=8, opt.zdim=128)
+	encoder = WaspNet.Dense_Encoders_AE_SliceSplit(opt)
+	decoder = WaspNet.Dense_Decoders_AE(opt)
 
 	def forward(self, x):
 		z, z_per, z_exp = self.encoder(x)
