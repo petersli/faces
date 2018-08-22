@@ -27,6 +27,7 @@ import math
 # our data loader
 import MultipieLoader
 import gc
+import WaspNet_dany as WaspNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--workers', type=int, help='number of data loading workers', default=8)
@@ -55,7 +56,7 @@ print(opt)
 opt.data_dir_prefix = '/nfs/bigdisk/zhshu/data/fare/'
 
 ## change the output directory to your own
-opt.output_dir_prefix = '/home/peterli/simons/VAE_multipie/AE'
+opt.output_dir_prefix = '/nfs/bigdisk/peterli/AE_triplet_results'
 opt.dirCheckpoints	= opt.output_dir_prefix + '/checkpoints'
 opt.dirImageoutput	= opt.output_dir_prefix + '/images'
 opt.dirTestingoutput  = opt.output_dir_prefix + '/testing'
@@ -77,9 +78,9 @@ except OSError:
 
 
 # sample iamges
-def visualizeAsImages(img_list, output_dir, 
-					  n_sample=4, id_sample=None, dim=-1, 
-					  filename='myimage', nrow=2, 
+def visualizeAsImages(img_list, output_dir,
+					  n_sample=4, id_sample=None, dim=-1,
+					  filename='myimage', nrow=2,
 					  normalize=False):
 	if id_sample is None:
 		images = img_list[0:n_sample,:,:,:]
@@ -87,7 +88,7 @@ def visualizeAsImages(img_list, output_dir,
 		images = img_list[id_sample,:,:,:]
 	if dim >= 0:
 		images = images[:,dim,:,:].unsqueeze(1)
-	vutils.save_image(images, 
+	vutils.save_image(images,
 		'%s/%s'% (output_dir, filename+'.png'),
 		nrow=nrow, normalize = normalize, padding=2)
 
@@ -107,27 +108,27 @@ def parseSampledDataTripletMultipie(dp0_img,  dp9_img, dp1_img):
 
 def setFloat(*args):
 	barg = []
-	for arg in args: 
+	for arg in args:
 		barg.append(arg.float())
 	return barg
 
 def setCuda(*args):
 	barg = []
-	for arg in args: 
+	for arg in args:
 		barg.append(arg.cuda())
 	return barg
 
 def setAsVariable(*args):
 	barg = []
-	for arg in args: 
+	for arg in args:
 		barg.append(Variable(arg))
-	return barg	
+	return barg
 
 def setAsDumbVariable(*args):
 	barg = []
-	for arg in args: 
+	for arg in args:
 		barg.append(Variable(arg,requires_grad=False))
-	return barg   
+	return barg
 
 
 
@@ -177,14 +178,15 @@ class AE(nn.Module):
 		super(AE, self).__init__()
 		self.latent_variable_size = latent_variable_size
 
+		'''
 		# ENCODER
 
-		# img: 64 x 64 
+		# img: 64 x 64
 
 		self.e1 = nn.Conv2d(in_channels=3, out_channels=8, kernel_size=4, stride=2, padding=1)
 		self.bn1 = nn.BatchNorm2d(8)
 
-		# 32 x 32 
+		# 32 x 32
 
 		self.e2 = nn.Conv2d(8, 16, 4, 2, 1)
 		self.bn2 = nn.BatchNorm2d(16)
@@ -219,7 +221,7 @@ class AE(nn.Module):
 		self.up1 = nn.Upsample(scale_factor=2) # removes the *2*2 from output of d1 b/c scale_factor scales both H and W
 		self.pd1 = nn.ReplicationPad2d(1) # +2 to height/width
 		self.d2 = nn.Conv2d(64*2, 64, kernel_size=3, stride=1)  # -2 to height/width
-		self.bn6 = nn.BatchNorm2d(64, eps=1.e-3) 
+		self.bn6 = nn.BatchNorm2d(64, eps=1.e-3)
 		# eps is added to denominator for numerical stability
 
 		# 4 x 4
@@ -284,9 +286,14 @@ class AE(nn.Module):
 		z_exp = z[:,80:128].contiguous()  # part of z representing the expression
 		return z, z_per, z_exp
 
+	'''
+
+	encoder = WaspNet.Dense_Encoders_AE_SliceSplit(opt)
+	decoder = WaspNet.Dense_Decoders_AE(opt)
+
 	def forward(self, x):
-		z, z_per, z_exp = self.get_latent_vectors(x)
-		recon_x = self.decode(z)
+		z, z_per, z_exp = self.encoder(x)
+		recon_x = self.decoder(z)
 		return recon_x, z, z_per, z_exp
 
 model=AE(latent_variable_size=128)
@@ -346,11 +353,11 @@ def train(epoch):
 	print('# size of the current (sub)dataset is %d' %len(dataset))
  #   train_amount = train_amount + len(dataset)
 	dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batchSize, shuffle=True, num_workers=int(opt.workers))
-	
+
 	for batch_idx, data_point in enumerate(dataloader, 0):
 
 		gc.collect() # collect garbage
-		# sample the data points: 
+		# sample the data points:
 		# dp0_img: image of data point 0
 		# dp9_img: image of data point 9, which is different in ``expression'' compare to dp0, same person as dp0
 		# dp1_img: image of data point 1, which is different in ``person'' compare to dp0, same expression as dp0
@@ -382,11 +389,11 @@ def train(epoch):
 		#dis_loss = cosine_loss_func(z_exp_dp0, z_exp_dp9, -1) + cosine_loss_func(z_per_dp0, z_per_dp1, -1) # dissimilarity
 
 		cosine_train_loss += sim_loss.data[0].item()
-		
+
 		# calc L1 loss
-	
+
 		L1_loss = L1(z_per_dp9, z_per_dp0) + L1(z_exp_dp1, z_exp_dp0)
-		
+
 
 		# calc triplet loss
 
@@ -396,7 +403,7 @@ def train(epoch):
 		triplet_train_loss += triplet_loss.data[0].item()
 
 		# BCE expression loss
-		
+
 		smile_target = torch.ones(z_exp_dp0.size()).cuda()
 		neutral_target = torch.zeros(z_exp_dp0.size()).cuda()
 
@@ -454,7 +461,7 @@ def train(epoch):
 
 		swap_train_loss += swap_loss.data[0].item()
 
-		
+
 
 		optimizer.step()
 		print('Train Epoch: {} [{}/{} ({:.0f}%)] Recon: {:.6f} Cosine: {:.6f} Triplet: {:.6f} Swap: {:.6f}'.format(
@@ -463,31 +470,31 @@ def train(epoch):
 			recon_loss.data[0].item(), sim_loss.data[0].item(), triplet_loss.data[0].item(), swap_loss.data[0].item()))
 			#loss is calculated for each img, so divide by batch size to get loss for the batch
 
-	lossfile.write('Epoch:{} Recon:{:.6f} Swap:{:.6f} ExpLoss:{:.6f}\n'.format(epoch, recon_train_loss, 
+	lossfile.write('Epoch:{} Recon:{:.6f} Swap:{:.6f} ExpLoss:{:.6f}\n'.format(epoch, recon_train_loss,
 		swap_train_loss, expression_train_loss))
-	lossfile.write('Epoch:{} cosineSim:{:.6f} triplet:{:.6f}\n'.format(epoch, cosine_train_loss, 
+	lossfile.write('Epoch:{} cosineSim:{:.6f} triplet:{:.6f}\n'.format(epoch, cosine_train_loss,
 		triplet_train_loss))
 
 
 	print('====> Epoch: {} Average recon loss: {:.6f} Average cosine loss: {:.6f} Average triplet: {:.6f} Average swap: {:.6f}'.format(
-		  epoch, recon_train_loss, cosine_train_loss, 
+		  epoch, recon_train_loss, cosine_train_loss,
 		  triplet_train_loss, swap_train_loss))
 			#divide by (batch_size * num_batches) to get average loss for the epoch
 
 
 	#data
-	visualizeAsImages(dp0_img.data.clone(), 
-		opt.dirImageoutput, 
+	visualizeAsImages(dp0_img.data.clone(),
+		opt.dirImageoutput,
 		filename='e_'+str(epoch)+'_train_img0', n_sample = 18, nrow=5, normalize=False)
-	visualizeAsImages(dp9_img.data.clone(), 
-		opt.dirImageoutput, 
+	visualizeAsImages(dp9_img.data.clone(),
+		opt.dirImageoutput,
 		filename='e_'+str(epoch)+'_train_img9', n_sample = 18, nrow=5, normalize=False)
-	visualizeAsImages(dp1_img.data.clone(), 
-		opt.dirImageoutput, 
+	visualizeAsImages(dp1_img.data.clone(),
+		opt.dirImageoutput,
 		filename='e_'+str(epoch)+'_train_img1', n_sample = 18, nrow=5, normalize=False)
 
 	#reconstruction (dp0 only)
-	visualizeAsImages(recon_batch_dp0.data.clone(), 
+	visualizeAsImages(recon_batch_dp0.data.clone(),
 		opt.dirImageoutput,
 		filename='e_'+str(epoch)+'_train_recon0', n_sample = 18, nrow=5, normalize=False)
 
@@ -529,16 +536,16 @@ def test(epoch):
 
 		# save test images
 
-		visualizeAsImages(dp0_img.data.clone(), 
-		opt.dirImageoutput, 
+		visualizeAsImages(dp0_img.data.clone(),
+		opt.dirImageoutput,
 		filename='e_'+str(epoch)+'_test_img0', n_sample = 18, nrow=5, normalize=False)
 
-		visualizeAsImages(dp9_img.data.clone(), 
-		opt.dirImageoutput, 
+		visualizeAsImages(dp9_img.data.clone(),
+		opt.dirImageoutput,
 		filename='e_'+str(epoch)+'_test_img9', n_sample = 18, nrow=5, normalize=False)
 
-		visualizeAsImages(dp1_img.data.clone(), 
-		opt.dirImageoutput, 
+		visualizeAsImages(dp1_img.data.clone(),
+		opt.dirImageoutput,
 		filename='e_'+str(epoch)+'_test_img1', n_sample = 18, nrow=5, normalize=False)
 
 		# test disentangling
@@ -546,22 +553,22 @@ def test(epoch):
 		z_per0_exp9 = torch.cat((z_per_dp0, z_exp_dp9), dim=1) # should be person 0 with expression 9
 		recon_per0_exp9 = model.decode(z_per0_exp9)
 
-		visualizeAsImages(recon_per0_exp9.data.clone(), 
-		opt.dirImageoutput, 
+		visualizeAsImages(recon_per0_exp9.data.clone(),
+		opt.dirImageoutput,
 		filename='e_'+str(epoch)+'_test_per0_exp9', n_sample = 18, nrow=5, normalize=False)
 
 		z_per0_exp1 = torch.cat((z_per_dp0, z_exp_dp1), dim=1) # should look the same as dp0_img (exp1 and exp0 are the same)
 		recon_per0_exp1 = model.decode(z_per0_exp1)
 
-		visualizeAsImages(recon_per0_exp1.data.clone(), 
-		opt.dirImageoutput, 
+		visualizeAsImages(recon_per0_exp1.data.clone(),
+		opt.dirImageoutput,
 		filename='e_'+str(epoch)+'_test_per0_exp1', n_sample = 18, nrow=5, normalize=False)
 
 		z_per1_exp9 = torch.cat((z_per_dp1, z_exp_dp9), dim=1) # should be unique
 		recon_per1_exp9 = model.decode(z_per1_exp9)
 
-		visualizeAsImages(recon_per1_exp9.data.clone(), 
-		opt.dirImageoutput, 
+		visualizeAsImages(recon_per1_exp9.data.clone(),
+		opt.dirImageoutput,
 		filename='e_'+str(epoch)+'_test_per1_exp9', n_sample = 18, nrow=5, normalize=False)
 
 
@@ -578,7 +585,7 @@ def test(epoch):
 		cosine_test_loss = sim_loss.data[0].item()
 
 		# calc L1 loss
-	
+
 		L1_loss = L1(z_per_dp9, z_per_dp0) + L1(z_exp_dp1, z_exp_dp0)
 
 		# calc triplet loss
@@ -586,7 +593,7 @@ def test(epoch):
 		triplet_loss = triplet_loss_func(z_per_dp0, z_per_dp9, z_per_dp1) + triplet_loss_func(z_exp_dp0, z_exp_dp1, z_exp_dp9)
 			# triplet(anchor, positive, negative)
 		triplet_test_loss = triplet_loss.data[0].item()
-		
+
 	print('Test images saved')
 	print('====> Test set recon loss: {:.4f}\ttriplet loss:  {:.4f}'.format(recon_test_loss, triplet_test_loss))
 
