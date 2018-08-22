@@ -181,7 +181,10 @@ TrainingData.append(opt.data_dir_prefix + 'real/multipie_select_batches/session0
 class AE(nn.Module):
 	def __init__(self, latent_variable_size):
 		super(AE, self).__init__()
-		self.latent_variable_size = latent_variable_size
+		# self.latent_variable_size = latent_variable_size
+
+		self.encoder = WaspNet.Dense_Encoders_AE_SliceSplit(opt)
+		self.decoder = WaspNet.Dense_Decoders_AE(opt)
 
 		'''
 		# ENCODER
@@ -292,10 +295,7 @@ class AE(nn.Module):
 		return z, z_per, z_exp
 
 	'''
-
-	self.encoder = WaspNet.Dense_Encoders_AE_SliceSplit(opt)
-	self.decoder = WaspNet.Dense_Decoders_AE(opt)
-
+	
 	def forward(self, x):
 		z, z_per, z_exp = self.encoder(x)
 		recon_x = self.decoder(z)
