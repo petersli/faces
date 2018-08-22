@@ -23,8 +23,8 @@ class waspSlicer(nn.Module):
         return output
 
 
-# Dense block in encoder. 
-# Dense block in encoder. 
+# Dense block in encoder.
+# Dense block in encoder.
 class DenseBlockEncoder(nn.Module):
     def __init__(self, n_channels, n_convs, activation=nn.ReLU, args=[False]):
         super(DenseBlockEncoder, self).__init__()
@@ -46,13 +46,13 @@ class DenseBlockEncoder(nn.Module):
             if i > 0:
                 next_output = 0
                 for no in outputs:
-                    next_output = next_output + no 
+                    next_output = next_output + no
                 outputs.append(next_output)
             else:
                 outputs.append(layer(inputs))
         return outputs[-1]
 
-# Dense block in encoder. 
+# Dense block in encoder.
 class DenseBlockDecoder(nn.Module):
     def __init__(self, n_channels, n_convs, activation=nn.ReLU, args=[False]):
         super(DenseBlockDecoder, self).__init__()
@@ -74,7 +74,7 @@ class DenseBlockDecoder(nn.Module):
             if i > 0:
                 next_output = 0
                 for no in outputs:
-                    next_output = next_output + no 
+                    next_output = next_output + no
                 outputs.append(next_output)
             else:
                 outputs.append(layer(inputs))
@@ -108,10 +108,10 @@ class DenseTransitionBlockDecoder(nn.Module):
         )
     def forward(self, inputs):
         return self.main(inputs)
-             
+
 
 # an encoder architecture
-# Densely connected convolutions. 
+# Densely connected convolutions.
 class waspDenseEncoder(nn.Module):
     def __init__(self, opt, ngpu=1, nc=1, ndf = 32, ndim = 128, activation=nn.LeakyReLU, args=[0.2, False], f_activation=nn.Sigmoid, f_args=[]):
         super(waspDenseEncoder, self).__init__()
@@ -145,7 +145,7 @@ class waspDenseEncoder(nn.Module):
     def forward(self, input):
         output = self.main(input).view(-1,self.ndim)
         #print(output.size())
-        return output   
+        return output
 
 class waspDenseDecoder(nn.Module):
     def __init__(self, opt, ngpu=1, nz=128, nc=1, ngf=32, lb=0, ub=1, activation=nn.ReLU, args=[False], f_activation=nn.Hardtanh, f_args=[0,1]):
@@ -194,7 +194,7 @@ class Dense_Encoders_AE_SliceSplit(nn.Module):
     def forward(self, input):
         self.z     = self.encoder(input)
         self.zp    = self.zPmixer(self.z)
-        self.ze    = self.zEmixer(self.z)    
+        self.ze    = self.zEmixer(self.z)
         return self.z, self.zp, self.ze
 
 
@@ -208,4 +208,3 @@ class Dense_Decoders_AE(nn.Module):
     def forward(self, input):
         self.output     = self.decoder(input.view(-1, self.opt.zdim, 1, 1))
         return self.output
-

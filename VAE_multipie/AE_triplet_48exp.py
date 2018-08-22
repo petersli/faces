@@ -288,8 +288,8 @@ class AE(nn.Module):
 
 	'''
 
-	encoder = WaspNet.Dense_Encoders_AE_SliceSplit(opt)
-	decoder = WaspNet.Dense_Decoders_AE(opt)
+	encoder = WaspNet.Dense_Encoders_AE_SliceSplit(opt.nc=3, opt.ndf=8, opt.zdim=128, opt.pdim=64, opt.edim=64)
+	decoder = WaspNet.Dense_Decoders_AE(opt.nc=3, opt.ngf=8, opt.zdim=128)
 
 	def forward(self, x):
 		z, z_per, z_exp = self.encoder(x)
