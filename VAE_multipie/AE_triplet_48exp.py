@@ -295,7 +295,7 @@ class AE(nn.Module):
 		return z, z_per, z_exp
 
 	'''
-	
+
 	def forward(self, x):
 		z, z_per, z_exp = self.encoder(x)
 		recon_x = self.decoder(z)
@@ -373,8 +373,8 @@ def train(epoch):
 		dp0_img, dp9_img, dp1_img = setAsVariable(dp0_img, dp9_img, dp1_img )
 
 
-		z_dp9, z_per_dp9, z_exp_dp9 = model.get_latent_vectors(dp9_img)
-		z_dp1, z_per_dp1, z_exp_dp1 = model.get_latent_vectors(dp1_img)
+		recon_batch_dp9, z_dp9, z_per_dp9, z_exp_dp9 = model(dp9_img)
+		recon_batch_dp1, z_dp1, z_per_dp1, z_exp_dp1 = model(dp1_img)
 
 		recon_batch_dp0, z_dp0, z_per_dp0, z_exp_dp0 = model(dp0_img)
 
@@ -531,8 +531,8 @@ def test(epoch):
 		dp0_img, dp9_img, dp1_img = setAsVariable(dp0_img, dp9_img, dp1_img )
 
 
-		z_dp9, z_per_dp9, z_exp_dp9 = model.get_latent_vectors(dp9_img)
-		z_dp1, z_per_dp1, z_exp_dp1 = model.get_latent_vectors(dp1_img)
+		recon_batch_dp9, z_dp9, z_per_dp9, z_exp_dp9 = model(dp9_img)
+		recon_batch_dp1, z_dp1, z_per_dp1, z_exp_dp1 = model(dp1_img)
 
 		optimizer.zero_grad()
 		model.zero_grad()
