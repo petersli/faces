@@ -438,16 +438,16 @@ def train(epoch):
 		# calc swapping loss
 
 		z_per0_exp9 = torch.cat((z_per_dp0, z_exp_dp9), dim=1) # should be equal to img9 (per0 and per9 are the same)
-		recon_per0_exp9 = model.decode(z_per0_exp9)
+		recon_per0_exp9 = model.decoder(z_per0_exp9)
 
 		z_per0_exp1 = torch.cat((z_per_dp0, z_exp_dp1), dim=1) # should be equal to img0 (exp1 and exp0 are the same)
-		recon_per0_exp1 = model.decode(z_per0_exp1)
+		recon_per0_exp1 = model.decoder(z_per0_exp1)
 
 		z_per9_exp0 = torch.cat((z_per_dp9, z_exp_dp0), dim=1) # should be equal to img0
-		recon_per9_exp0 = model.decode(z_per9_exp0)
+		recon_per9_exp0 = model.decoder(z_per9_exp0)
 
 		z_per1_exp0 = torch.cat((z_per_dp1, z_exp_dp0), dim=1) # should be equal to img1
-		recon_per1_exp0 = model.decode(z_per1_exp0)
+		recon_per1_exp0 = model.decoder(z_per1_exp0)
 
 
 		swap_loss1 = recon_loss_func(recon_per0_exp9, dp9_img)
@@ -556,21 +556,21 @@ def test(epoch):
 		# test disentangling
 
 		z_per0_exp9 = torch.cat((z_per_dp0, z_exp_dp9), dim=1) # should be person 0 with expression 9
-		recon_per0_exp9 = model.decode(z_per0_exp9)
+		recon_per0_exp9 = model.decoder(z_per0_exp9)
 
 		visualizeAsImages(recon_per0_exp9.data.clone(),
 		opt.dirImageoutput,
 		filename='e_'+str(epoch)+'_test_per0_exp9', n_sample = 18, nrow=5, normalize=False)
 
 		z_per0_exp1 = torch.cat((z_per_dp0, z_exp_dp1), dim=1) # should look the same as dp0_img (exp1 and exp0 are the same)
-		recon_per0_exp1 = model.decode(z_per0_exp1)
+		recon_per0_exp1 = model.decoder(z_per0_exp1)
 
 		visualizeAsImages(recon_per0_exp1.data.clone(),
 		opt.dirImageoutput,
 		filename='e_'+str(epoch)+'_test_per0_exp1', n_sample = 18, nrow=5, normalize=False)
 
 		z_per1_exp9 = torch.cat((z_per_dp1, z_exp_dp9), dim=1) # should be unique
-		recon_per1_exp9 = model.decode(z_per1_exp9)
+		recon_per1_exp9 = model.decoder(z_per1_exp9)
 
 		visualizeAsImages(recon_per1_exp9.data.clone(),
 		opt.dirImageoutput,
