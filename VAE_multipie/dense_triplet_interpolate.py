@@ -193,7 +193,7 @@ class AE(nn.Module):
 
 model=AE(latent_variable_size=128)
 
-model.load_state_dict(torch.load('/nfs/bigdisk/peterli/AE_triplet_results/checkpoints/Epoch_999*')) # pretrained encoder and decoder
+model.load_state_dict(torch.load('Epoch_999_Recon_0.0000_cosine_0.0000.pth')) # pretrained encoder and decoder
 
 
 if opt.cuda:
