@@ -59,8 +59,8 @@ print(opt)
 ## do not change the data directory
 opt.data_dir_prefix = '/nfs/bigdisk/zhshu/data/fare/'
 
-## output directories
-opt.output_dir_prefix = '/home/peterli/simons/AE_MUG/AE'
+## change the output directory to your own
+opt.output_dir_prefix = '/nfs/bigdisk/peterli/AE_triplet_results'
 opt.dirCheckpoints	= opt.output_dir_prefix + '/checkpoints'
 opt.dirImageoutput	= opt.output_dir_prefix + '/images'
 opt.dirTestingoutput  = opt.output_dir_prefix + '/testing'
