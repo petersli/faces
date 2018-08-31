@@ -48,6 +48,11 @@ parser.add_argument('--manualSeed', type=int, help='manual seed')
 parser.add_argument('--epoch_iter', type=int,default=1000, help='number of epochs on entire dataset')
 parser.add_argument('--location', type = int, default=0, help ='where is the code running')
 parser.add_argument('-f',type=str,default= '', help='dummy input required for jupyter notebook')
+parser.add_argument('--nc', type=int, default=3, help='num channels')
+parser.add_argument('--zdim', type=int, default=128, help='latent variable size')
+parser.add_argument('--edim', type=int, default=64, help='dimensions of expression vec')
+parser.add_argument('--pdim', type=int, default=64, help='dimensions of person vec')
+
 opt = parser.parse_args()
 print(opt)
 
@@ -185,118 +190,14 @@ MugData_root = '/home/peterli/faces/AE_MUG/MUG_data'
 class AE(nn.Module):
 	def __init__(self, latent_variable_size):
 		super(AE, self).__init__()
-		self.latent_variable_size = latent_variable_size
+		#self.latent_variable_size = latent_variable_size
 
-		# ENCODER
-
-		# img: 64 x 64
-
-		self.e1 = nn.Conv2d(in_channels=3, out_channels=8, kernel_size=4, stride=2, padding=1)
-		self.bn1 = nn.BatchNorm2d(8)
-
-		# 32 x 32
-
-		self.e2 = nn.Conv2d(8, 16, 4, 2, 1)
-		self.bn2 = nn.BatchNorm2d(16)
-
-		# 16 x 16
-
-		self.e3 = nn.Conv2d(16, 32, 4, 2, 1)
-		self.bn3 = nn.BatchNorm2d(32)
-
-		# 8 x 8
-
-		self.e4 = nn.Conv2d(32, 64, 4, 2, 1)
-		self.bn4 = nn.BatchNorm2d(64)
-
-		# 4 x 4
-
-		self.e5 = nn.Conv2d(64, 64, 4, 2, 1)
-		self.bn5 = nn.BatchNorm2d(64)
-
-		# 2 x 2
-
-		self.fc1 = nn.Linear(64*2*2, latent_variable_size)
-
-		# batch_size x latent_variable_size (100 x 128)
-
-		# DECODER
-
-		self.d1 = nn.Linear(latent_variable_size, 64*2*2*2)
-
-		# 2 x 2
-
-		self.up1 = nn.Upsample(scale_factor=2) # removes the *2*2 from output of d1 b/c scale_factor scales both H and W
-		self.pd1 = nn.ReplicationPad2d(1) # +2 to height/width
-		self.d2 = nn.Conv2d(64*2, 64, kernel_size=3, stride=1)  # -2 to height/width
-		self.bn6 = nn.BatchNorm2d(64, eps=1.e-3)
-		# eps is added to denominator for numerical stability
-
-		# 4 x 4
-
-		self.up2 = nn.Upsample(scale_factor=2)
-		self.pd2 = nn.ReplicationPad2d(1)
-		self.d3 = nn.Conv2d(64, 32, 3, 1)
-		self.bn7 = nn.BatchNorm2d(32, 1.e-3)
-
-	 	# 8 x 8
-
-		self.up3 = nn.Upsample(scale_factor=2)
-		self.pd3 = nn.ReplicationPad2d(1)
-		self.d4 = nn.Conv2d(32, 16, 3, 1)
-		self.bn8 = nn.BatchNorm2d(16, 1.e-3)
-
-		# 16 x 16
-
-		self.up4 = nn.Upsample(scale_factor=2)
-		self.pd4 = nn.ReplicationPad2d(1)
-		self.d5 = nn.Conv2d(16, 8, 3, 1)
-		self.bn9 = nn.BatchNorm2d(8, 1.e-3)
-
-		# 32 x 32
-
-		self.up5 = nn.Upsample(scale_factor=2)
-		self.pd5 = nn.ReplicationPad2d(1)
-		self.d6 = nn.Conv2d(8, 3, 3, 1)
-
-		# 64 x 64
-
-		self.leakyrelu = nn.LeakyReLU(0.2)
-		self.relu = nn.ReLU()
-		self.hardtanh = nn.Hardtanh()
-		self.sigmoid = nn.Sigmoid()
-
- 	def encode(self, x):
-		#print("encode")
-		h1 = self.leakyrelu(self.bn1(self.e1(x)))
-		h2 = self.leakyrelu(self.bn2(self.e2(h1)))
-		h3 = self.leakyrelu(self.bn3(self.e3(h2)))
-		h4 = self.leakyrelu(self.bn4(self.e4(h3)))
-		h5 = self.leakyrelu(self.bn5(self.e5(h4)))
-		h5 = h5.view(-1, 64*2*2)
-
-		return self.sigmoid(self.fc1(h5))
-
-	def decode(self, z):
-		#print("decode")
-		h1 = self.relu(self.d1(z))
-		h1 = h1.view(-1, 64*2, 2, 2)
-		h2 = self.leakyrelu(self.bn6(self.d2(self.pd1(self.up1(h1)))))
-		h3 = self.leakyrelu(self.bn7(self.d3(self.pd2(self.up2(h2)))))
-		h4 = self.leakyrelu(self.bn8(self.d4(self.pd3(self.up3(h3)))))
-		h5 = self.leakyrelu(self.bn9(self.d5(self.pd4(self.up4(h4)))))
-
-		return self.hardtanh(self.d6(self.pd5(self.up5(h5))))
-
-	def get_latent_vectors(self, x):
-		z = self.encode(x) # whole latent vector
-		z_per = z[:,0:64].contiguous() # part of z repesenenting identity of the person
-		z_exp = z[:,64:128].contiguous()  # part of z representing the expression
-		return z, z_per, z_exp
+		self.encoder = WaspNet.Dense_Encoders_AE_SliceSplit(opt)
+		self.decoder = WaspNet.Dense_Decoders_AE(opt)
 
 	def forward(self, x):
-		z, z_per, z_exp = self.get_latent_vectors(x)
-		recon_x = self.decode(z)
+		z, z_per, z_exp = self.encoder(x)
+		recon_x = self.decoder(z)
 		return recon_x, z, z_per, z_exp
 
 model=AE(latent_variable_size=128)
@@ -380,8 +281,8 @@ def train(epoch):
 		dp0_img, dp9_img, dp1_img = setAsVariable(dp0_img, dp9_img, dp1_img)
 		dp2_img, dp3_img, dp4_img = setAsVariable(dp2_img, dp3_img, dp4_img)
 
-		z_dp9, z_per_dp9, z_exp_dp9 = model.get_latent_vectors(dp9_img)
-		z_dp1, z_per_dp1, z_exp_dp1 = model.get_latent_vectors(dp1_img)
+		recon_batch_dp9, z_dp9, z_per_dp9, z_exp_dp9 = model(dp9_img)
+		recon_batch_dp1, z_dp1, z_per_dp1, z_exp_dp1 = model(dp1_img)
 
 		recon_batch_dp0, z_dp0, z_per_dp0, z_exp_dp0 = model(dp0_img)
 
@@ -482,8 +383,8 @@ def train(epoch):
 
 		## recon ##
 
-		z_dp3, z_per_dp3, z_exp_dp3 = model.get_latent_vectors(dp3_img)
-		z_dp4, z_per_dp4, z_exp_dp4 = model.get_latent_vectors(dp4_img)
+		recon_batch_dp3, z_dp3, z_per_dp3, z_exp_dp3 = model(dp3_img)
+		recon_batch_dp4, z_dp4, z_per_dp4, z_exp_dp4 = model(dp4_img)
 
 		recon_batch_dp2, z_dp2, z_per_dp2, z_exp_dp2 = model(dp2_img)
 
@@ -570,8 +471,8 @@ def test(epoch):
 		dp2_img, dp3_img, dp4_img = setAsVariable(dp2_img, dp3_img, dp4_img)
 
 
-		z_dp9, z_per_dp9, z_exp_dp9 = model.get_latent_vectors(dp9_img)
-		z_dp1, z_per_dp1, z_exp_dp1 = model.get_latent_vectors(dp1_img)
+		z_recon_dp9, z_dp9, z_per_dp9, z_exp_dp9 = model(dp9_img)
+		z_recon_dp1, z_dp1, z_per_dp1, z_exp_dp1 = model(dp1_img)
 
 		optimizer.zero_grad()
 		model.zero_grad()
@@ -639,8 +540,8 @@ def test(epoch):
 		triplet_test_loss = triplet_loss.data[0].item()
 
 		##### MUG #####
-		z_dp3, z_per_dp3, z_exp_dp3 = model.get_latent_vectors(dp3_img)
-		z_dp4, z_per_dp4, z_exp_dp4 = model.get_latent_vectors(dp4_img)
+		recon_batch_dp3, z_dp3, z_per_dp3, z_exp_dp3 = model(dp3_img)
+		recon_batch_dp4, z_dp4, z_per_dp4, z_exp_dp4 = model(dp4_img)
 
 		recon_batch_dp2, z_dp2, z_per_dp2, z_exp_dp2 = model(dp2_img)
 
