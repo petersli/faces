@@ -25,8 +25,9 @@ from torch.autograd import gradcheck
 from torch.autograd import Function
 import math
 # our data loader
-import MUGloader
+import MultipieLoader
 import gc
+import WaspNet_dany as WaspNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--workers', type=int, help='number of data loading workers', default=8)
