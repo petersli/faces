@@ -17,7 +17,7 @@ NUMPY_EXTENSIONS = ['.npy', '.NPY']
 
 PNG_EXTENSIONS = ['.png', '.PNG']
 
-dict = np.load('dict.npy').item()
+dict = np.load('cropdict_pie.npy').item()
 
 
 def duplicates(lst, item, match = True):
@@ -88,7 +88,7 @@ def parse_imgfilename_fare_multipie(fn):
 
 class FareMultipieExpressionTripletsFrontal(data.Dataset):
     # a full fare dataset object
-    def __init__(self, opt, root, 
+    def __init__(self, opt, root,
         resize = 64,
         transform=None, return_paths=False):
         self.opt = opt
@@ -163,7 +163,7 @@ class FareMultipieExpressionTripletsFrontal(data.Dataset):
 
                 ids, ide, idp, idl = self.parse_imgfilename_fare_multipie(imgPath0[-20:-4])
                 key = (ids, ide)
-       
+
                 coords = dict[key]
                 img0 = img0.crop(coords) #crop
 
@@ -175,8 +175,8 @@ class FareMultipieExpressionTripletsFrontal(data.Dataset):
             with Image.open(f9) as img9:
                 img9 = img9.convert('RGB')
                 ids, ide, idp, idl = self.parse_imgfilename_fare_multipie(imgPath9[-20:-4])
-                key = (ids, ide)                
-         
+                key = (ids, ide)
+
                 coords = dict[key]
                 img9 = img9.crop(coords) #crop
 
@@ -190,7 +190,7 @@ class FareMultipieExpressionTripletsFrontal(data.Dataset):
 
                 ids, ide, idp, idl = self.parse_imgfilename_fare_multipie(imgPath1[-20:-4])
                 key = (ids, ide)
-             
+
                 coords = dict[key]
                 img1 = img1.crop(coords) #crop
 
@@ -212,7 +212,7 @@ class FareMultipieExpressionTripletsFrontal(data.Dataset):
         if len(ava)>0:
             return random.sample(ava, 1)[0]
         else:
-            return index    
+            return index
 
     def getCoindex1(self, index):
         # different ids, same ide, same idl, same idt, same idp
@@ -224,7 +224,7 @@ class FareMultipieExpressionTripletsFrontal(data.Dataset):
         if len(ava)>0:
             return random.sample(ava, 1)[0]
         else:
-            return index  
+            return index
 
     def inClique(self, a, b):
         c1 = ['041','050', '051']
@@ -243,7 +243,7 @@ class FareMultipieExpressionTripletsFrontal(data.Dataset):
 
 class FareMultipieExpressionTripletsFrontalTrainTestSplit(data.Dataset):
     # a full fare dataset object
-    def __init__(self, opt, root, 
+    def __init__(self, opt, root,
         doTesting = False,
         resize = 64,
         transform=None, return_paths=False):
@@ -326,7 +326,7 @@ class FareMultipieExpressionTripletsFrontalTrainTestSplit(data.Dataset):
 
                 ids, ide, idp, idl = self.parse_imgfilename_fare_multipie(imgPath0[-20:-4])
                 key = (ids, '01')
-       
+
                 coords = dict[key]
                 img0 = img0.crop(coords) #crop
 
@@ -338,8 +338,8 @@ class FareMultipieExpressionTripletsFrontalTrainTestSplit(data.Dataset):
             with Image.open(f9) as img9:
                 img9 = img9.convert('RGB')
                 ids, ide, idp, idl = self.parse_imgfilename_fare_multipie(imgPath9[-20:-4])
-                key = (ids, '01')                
-         
+                key = (ids, '01')
+
                 coords = dict[key]
                 img9 = img9.crop(coords) #crop
 
@@ -353,7 +353,7 @@ class FareMultipieExpressionTripletsFrontalTrainTestSplit(data.Dataset):
 
                 ids, ide, idp, idl = self.parse_imgfilename_fare_multipie(imgPath1[-20:-4])
                 key = (ids, '01')
-             
+
                 coords = dict[key]
                 img1 = img1.crop(coords) #crop
 
@@ -375,7 +375,7 @@ class FareMultipieExpressionTripletsFrontalTrainTestSplit(data.Dataset):
         if len(ava)>0:
             return random.sample(ava, 1)[0]
         else:
-            return index    
+            return index
 
     def getCoindex1(self, index):
         # different ids, same ide, same idl, same idt, same idp
@@ -387,7 +387,7 @@ class FareMultipieExpressionTripletsFrontalTrainTestSplit(data.Dataset):
         if len(ava)>0:
             return random.sample(ava, 1)[0]
         else:
-            return index  
+            return index
 
     def inClique(self, a, b):
         c1 = ['041','050', '051']
@@ -409,4 +409,3 @@ class FareMultipieExpressionTripletsFrontalTrainTestSplit(data.Dataset):
     def resample(self):
         index = np.random.randint(len(self.imgs), size=1)[0]
         return index
-
