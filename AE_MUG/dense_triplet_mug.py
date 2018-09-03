@@ -25,7 +25,6 @@ from torch.autograd import gradcheck
 from torch.autograd import Function
 import math
 # our data loader
-import MultipieLoader
 import MUGloader
 import gc
 import WaspNet_dany as WaspNet
@@ -51,9 +50,9 @@ parser.add_argument('--epoch_iter', type=int,default=1000, help='number of epoch
 parser.add_argument('--location', type = int, default=0, help ='where is the code running')
 parser.add_argument('-f',type=str,default= '', help='dummy input required for jupyter notebook')
 parser.add_argument('--nc', type=int, default=3, help='num channels')
-parser.add_argument('--zdim', type=int, default=128, help='latent variable size')
-parser.add_argument('--edim', type=int, default=64, help='dimensions of expression vec')
-parser.add_argument('--pdim', type=int, default=64, help='dimensions of person vec')
+parser.add_argument('--zdim', type=int, default=12, help='latent variable size')
+parser.add_argument('--edim', type=int, default=6, help='dimensions of expression vec')
+parser.add_argument('--pdim', type=int, default=6, help='dimensions of person vec')
 
 opt = parser.parse_args()
 print(opt)
