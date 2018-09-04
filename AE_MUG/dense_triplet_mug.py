@@ -585,8 +585,7 @@ def start_training():
 
 	for epoch in range(start_epoch + 1, start_epoch + opt.epoch_iter + 1):
 		recon_loss, triplet_loss = train(epoch)
-		torch.save(model.state_dict(),
-		 opt.dirCheckpoints + '/Epoch_{}_Recon_{:.4f}_cosine_{:.4f}.pth'.format(epoch, recon_loss, triplet_loss))
+		torch.save(model.state_dict(), opt.dirCheckpoints + 'densetripletmug.pth')
 		if epoch % 10 == 0:
 			test(epoch)
 
