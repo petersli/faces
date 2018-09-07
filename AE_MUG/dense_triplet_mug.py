@@ -399,6 +399,7 @@ def train(epoch):
 		### intensity ###
 
 		target = torch.zeros(z_exp_dp2[0].size()).cuda()
+		print(z_exp_dp2[0].size())
 		target[int(inten2[0])] = 1.0
 		print(target)
 		inten_loss = BCE(z_exp_dp2, target)
