@@ -50,9 +50,9 @@ parser.add_argument('--epoch_iter', type=int,default=1000, help='number of epoch
 parser.add_argument('--location', type = int, default=0, help ='where is the code running')
 parser.add_argument('-f',type=str,default= '', help='dummy input required for jupyter notebook')
 parser.add_argument('--nc', type=int, default=3, help='num channels')
-parser.add_argument('--zdim', type=int, default=12, help='latent variable size')
-parser.add_argument('--edim', type=int, default=6, help='dimensions of expression vec')
-parser.add_argument('--pdim', type=int, default=6, help='dimensions of person vec')
+parser.add_argument('--zdim', type=int, default=22, help='latent variable size')
+parser.add_argument('--edim', type=int, default=11, help='dimensions of expression vec')
+parser.add_argument('--pdim', type=int, default=11, help='dimensions of person vec')
 
 opt = parser.parse_args()
 print(opt)
@@ -398,8 +398,7 @@ def train(epoch):
 
 		### intensity ###
 
-		target = torch.zeros(z_exp_dp2[0].size()).cuda()
-		print(z_exp_dp2[0].size())
+		target = torch.zeros(25, opt.edim).cuda()
 		target[int(inten2[0])] = 1.0
 		print(target)
 		inten_loss = BCE(z_exp_dp2, target)
